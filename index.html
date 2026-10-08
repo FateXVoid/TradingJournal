@@ -83,7 +83,7 @@ const D={home:['หน้าหลัก','Home'],trades:['เทรด','Trades
 let S=null,v='home',rg='M',cm,fl='',q='',F={};
 const LS='tj4',CACHE='tj_cache_v3',SESSION='tj_license_session_v2',DEVICE='tj_device_id_v2',UI='tj_ui_v2',DRAFT='tj_draft_v2';
 const SUPABASE_URL='https://btbkiccsbuwaeiiwptyj.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0YmtpY2NzYnV3YWVpaXdwdHlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NzUwMTIsImV4cCI6MjEwNzA1MTAxMn0.F1lTcN4__5ltYt5AwJbBpJVNpwqxLrwR1TE8DP34wBY';
+const SUPABASE_ANON_KEY='sb_publishable_9HQburUl4b8DUqXrwtWlZA_mwQabW7O';
 let sb=null,sessionToken='',accountInfo=null,cloudTimer=null,cloudSaving=false,devTab='unused',devSelectedKey=null;
 try{if(window.supabase&&SUPABASE_URL.startsWith('http')&&!SUPABASE_ANON_KEY.includes('PASTE_'))sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(e){sb=null}
 const $=s=>document.querySelector(s),TH=()=>S&&S.cfg&&S.cfg.lang=='th',T=k=>{const x=D[k];return x?x[TH()?0:1]:k},iso=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')},ago=n=>iso(Date.now()-n*864e5),sum=(l,k)=>l.reduce((a,t)=>a+(t[k]||0),0),esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
