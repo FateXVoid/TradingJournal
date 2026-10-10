@@ -1,5 +1,6 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Trading Journal</title>
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#090909"><meta name="description" content="RCX Journal — private trading performance, journal, statistics and trader community"><title>RCX Journal</title>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/lenis@1.3.26/dist/lenis.css">
 <style>
 :root{--bg:#090909;--p:#111111;--p2:#181818;--ln:#2b2b2b;--tx:#f5f5f5;--mu:#969696;--up:#f5f5f5;--dn:#888888;--ac:#ffffff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 :root[data-theme=light]{--bg:#f7f7f7;--p:#ffffff;--p2:#ececec;--ln:#d8d8d8;--tx:#111111;--mu:#666666;--up:#111111;--dn:#777777;--ac:#111111}
@@ -128,6 +129,17 @@ h2{font-size:20px;font-weight:800;letter-spacing:-.025em;margin:22px 0 12px}.t b
 @media(max-width:380px){.top>.row{gap:3px}.top .c{padding:6px 8px;font-size:12px}.month-report-body{grid-template-columns:1fr}.chat-compose{grid-template-columns:1fr}.chat-compose>button{width:100%}.f3{grid-template-columns:1fr 1fr}.f3>div:last-child{grid-column:1 / -1}}
 
 
+/* RCX desktop navigation: top-mounted, restrained and scroll-switchable; phone nav stays bottom */
+@media(min-width:761px){
+  body{padding-top:0}
+  body>nav{position:sticky;top:0;bottom:auto;left:auto;right:auto;width:100%;z-index:80;border-top:0;border-bottom:1px solid var(--ln);box-shadow:0 8px 24px #0002}
+  body>nav>div{width:calc(100% - 80px);max-width:1360px;margin:0 auto;justify-content:flex-start;gap:6px}
+  body>nav .tab{flex:0 0 auto;min-width:100px;border-radius:10px 10px 0 0;padding:13px 18px;font-size:14px}
+  body>nav .tab.on{box-shadow:inset 0 -2px var(--ac);background:color-mix(in srgb,var(--tx) 5%,var(--p))}
+  #app{padding-top:18px}
+}
+@media(max-width:760px){body>nav{position:fixed;top:auto;bottom:0;left:0;right:0;width:100%}}
+
 /* final desktop-only overrides; mobile breakpoints remain unchanged */
 @media (min-width:1101px){
   #app{width:calc(100% - 80px);max-width:1360px;padding-top:20px;padding-bottom:100px}
@@ -154,11 +166,150 @@ h2{font-size:20px;font-weight:800;letter-spacing:-.025em;margin:22px 0 12px}.t b
   .dev-card{box-shadow:none;border-radius:14px}
   .settings-sheet{max-width:880px;padding:20px;border-radius:18px}
 }
-</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
+
+
+/* ================= RCX JOURNAL : premium terminal interaction layer ================= */
+:root{--rcx-mx:50vw;--rcx-my:35vh;--rcx-glint:rgba(255,255,255,.10)}
+body{isolation:isolate;position:relative}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.8;background:radial-gradient(460px circle at var(--rcx-mx) var(--rcx-my),rgba(255,255,255,.075),transparent 72%),linear-gradient(90deg,transparent 49.95%,rgba(255,255,255,.018) 50%,transparent 50.05%),linear-gradient(0deg,transparent 49.95%,rgba(255,255,255,.015) 50%,transparent 50.05%);background-size:auto,96px 96px,96px 96px;mix-blend-mode:screen}
+#app{position:relative;z-index:2}
+.rcx-brandline{display:flex;align-items:center;gap:11px;min-width:0}
+.rcx-monogram{display:grid;place-items:center;width:42px;height:42px;border:1px solid var(--ln);border-radius:13px;background:linear-gradient(145deg,var(--p2),var(--bg));font:800 12px/1 Manrope,sans-serif;letter-spacing:-.08em;box-shadow:inset 0 1px rgba(255,255,255,.12),0 7px 24px #0004;position:relative;overflow:hidden}
+.rcx-monogram:after{content:"";position:absolute;left:-50%;top:-70%;width:48%;height:240%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.24),transparent);transform:rotate(25deg);animation:rcxLogoSweep 5s ease-in-out infinite}
+@keyframes rcxLogoSweep{0%,55%{left:-60%}85%,100%{left:130%}}
+.rcx-brandtext{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.rcx-brandtext strong{font-size:19px;font-weight:800;letter-spacing:-.045em}
+.rcx-brandtext .page-label{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--mu);margin-top:3px}
+.top{align-items:center}
+#clockBadge{padding:7px 10px;border:1px solid var(--ln);border-radius:10px;background:color-mix(in srgb,var(--p) 80%,transparent);font:600 11px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.02em;backdrop-filter:blur(10px)}
+#rcxCursorHalo{position:fixed;top:0;left:0;z-index:1001;width:28px;height:28px;border:1px solid rgba(255,255,255,.42);border-radius:50%;pointer-events:none;opacity:0;transform:translate3d(-50%,-50%,0);mix-blend-mode:difference;transition:width .2s ease,height .2s ease,opacity .2s ease,border-color .2s ease}
+#rcxCursorHalo:before{content:"";position:absolute;inset:9px;border:1px solid #fff;border-radius:50%;opacity:.6}
+#rcxCursorHalo.is-visible{opacity:.85}
+#rcxCursorHalo.is-hot{width:48px;height:48px;border-color:#fff}
+#rcxCursorHalo.is-hot:before{inset:17px}
+#rcxParticleCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:.22}
+button,.c,.tab,.r,.currency-opt,.dev-btn,.dev-tab,[data-social],[data-p]{transition:transform .18s ease,border-color .22s ease,background-color .22s ease,box-shadow .22s ease,color .22s ease}
+button:hover,.c:hover,.tab:hover,.dev-btn:hover,.dev-tab:hover,.currency-opt:hover,[data-social]:hover{border-color:color-mix(in srgb,var(--tx) 50%,var(--ln));box-shadow:0 8px 22px #0003,0 0 0 1px rgba(255,255,255,.025);transform:translateY(-1px)}
+button:active,.c:active,.tab:active,.dev-btn:active,.dev-tab:active,.currency-opt:active,[data-social]:active{transform:translateY(0) scale(.985)}
+.t,.card,.social-card,.dashboard-history,.month-report,.settings-group,.dev-card{position:relative;overflow:hidden;transform-style:preserve-3d;transition:border-color .25s ease,box-shadow .25s ease,background-color .25s ease,transform .22s ease}
+.t:before,.card:before,.social-card:before,.dashboard-history:before,.month-report:before,.settings-group:before,.dev-card:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(260px circle at var(--card-x,50%) var(--card-y,50%),rgba(255,255,255,.065),transparent 70%);opacity:0;transition:opacity .25s ease}
+.t:hover:before,.card:hover:before,.social-card:hover:before,.dashboard-history:hover:before,.month-report:hover:before,.settings-group:hover:before,.dev-card:hover:before{opacity:1}
+.t:hover,.card:hover,.social-card:hover,.month-report:hover,.dev-card:hover{border-color:color-mix(in srgb,var(--tx) 25%,var(--ln));box-shadow:0 14px 36px #0002}
+#fab{transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s ease,filter .2s ease}
+#fab:hover{transform:translateY(-3px);box-shadow:0 16px 38px #0006;filter:brightness(1.08)}
+.huge{box-shadow:0 4px 0 color-mix(in srgb,var(--tx) 18%,transparent);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+.huge:hover{filter:brightness(1.06);box-shadow:0 8px 0 color-mix(in srgb,var(--tx) 14%,transparent),0 14px 32px #0003}
+.settings-actions .huge{color:var(--bg)}
+.rcx-toggle{display:inline-flex;align-items:center;cursor:pointer;flex-shrink:0}
+.rcx-toggle input{position:absolute;opacity:0;width:1px;height:1px;min-height:1px;padding:0}
+.rcx-toggle-track{width:46px;height:26px;border:1px solid var(--ln);border-radius:99px;background:var(--p2);position:relative;transition:background .2s,border-color .2s}
+.rcx-toggle-track:after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:var(--mu);transition:transform .2s,background .2s;box-shadow:0 2px 6px #0005}
+.rcx-toggle input:checked+.rcx-toggle-track{background:var(--tx);border-color:var(--tx)}
+.rcx-toggle input:checked+.rcx-toggle-track:after{transform:translateX(20px);background:var(--bg)}
+.rcx-toggle input:focus-visible+.rcx-toggle-track{outline:2px solid var(--tx);outline-offset:3px}
+.toast{animation:rcxToastIn .26s cubic-bezier(.16,1,.3,1) both}
+@keyframes rcxToastIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.boot-frame,.key-card,.settings-sheet,.group-manager-sheet{animation:rcxPanelIn .42s cubic-bezier(.16,1,.3,1) both}
+@keyframes rcxPanelIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(min-width:900px) and (hover:hover) and (prefers-reduced-motion:no-preference){
+  button:not(.tab),.c,.tab,.r,.social-card,.t,.card,.month-report,.dev-card{will-change:transform}
+}
+@media(max-width:899px),(hover:none){#rcxCursorHalo,#rcxParticleCanvas{display:none!important}body::before{opacity:.35;background-size:auto,72px 72px,72px 72px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}#rcxCursorHalo,#rcxParticleCanvas{display:none!important}}
+
+/* ---------- RCX scroll experience: Lenis + monochrome financial terminal ---------- */
+html.lenis,html.lenis body{height:auto}
+html.lenis.lenis-smooth{scroll-behavior:auto!important}
+html.lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}
+html.lenis.lenis-stopped{overflow:hidden}
+#rcxScrollProgress{position:fixed;z-index:1200;left:0;top:0;width:100%;height:2px;pointer-events:none;transform:scaleX(0);transform-origin:left center;background:linear-gradient(90deg,#666 0%,#fff 45%,#777 100%);box-shadow:0 0 12px #fff5;will-change:transform}
+@keyframes rcxPageIn{from{opacity:.72;transform:translate3d(0,16px,0);filter:blur(4px)}to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}}
+#m.rcx-page-change{animation:none}
+[data-scroll-reveal]{opacity:0;transform:translate3d(0,26px,0) scale(.992);filter:blur(3px);transition:opacity .75s cubic-bezier(.16,1,.3,1),transform .85s cubic-bezier(.16,1,.3,1),filter .75s cubic-bezier(.16,1,.3,1);transition-delay:var(--rcx-reveal-delay,0ms);will-change:opacity,transform}
+[data-scroll-reveal].rcx-in-view{opacity:1;transform:translate3d(0,0,0) scale(1);filter:blur(0);will-change:auto}
+.dashboard-hero{position:relative;isolation:isolate}
+.dashboard-hero:before{content:"";position:absolute;z-index:-1;pointer-events:none;inset:-32% 18% -28% -12%;background:radial-gradient(ellipse at 42% 48%,rgba(255,255,255,.085),transparent 67%);transform:translate3d(0,var(--rcx-hero-parallax,0px),0);will-change:transform}
+.dashboard-hero:after{content:"RCX / PERFORMANCE TERMINAL";position:absolute;z-index:-1;right:4px;bottom:-4px;pointer-events:none;font:700 9px/1 Manrope,sans-serif;letter-spacing:.24em;color:var(--tx);opacity:.12;transform:translate3d(0,var(--rcx-hero-parallax,0px),0)}
+.dashboard-hero .big{transform:translate3d(0,var(--rcx-hero-title-parallax,0px),0);will-change:transform}
+/* Reveal is kept subtle in monochrome, not a color/theme replacement. */
+[data-scroll-reveal] .r,[data-scroll-reveal] .c{backface-visibility:hidden}
+@media(max-width:760px){#rcxScrollProgress{height:2px}.dashboard-hero:before{inset:-12% -8% -10% -8%;opacity:.65}.dashboard-hero:after{font-size:7px;letter-spacing:.16em}}
+@media(prefers-reduced-motion:reduce){[data-scroll-reveal],#m.rcx-page-change{opacity:1!important;transform:none!important;filter:none!important;animation:none!important;transition:none!important}#rcxScrollProgress{display:none!important}}
+
+/* ============ RCX CONTINUOUS SCROLL / CREATIVE FINANCIAL TERMINAL ============ */
+:root{--rcx-sticky-gap:78px;--rcx-ease:cubic-bezier(.16,1,.3,1)}
+#m{display:block;position:relative;isolation:isolate}
+.rcx-tab-section{position:relative;min-height:70vh;padding:clamp(38px,5vw,76px) clamp(0px,1.4vw,20px) clamp(64px,8vw,110px);border-bottom:1px solid color-mix(in srgb,var(--tx) 12%,transparent);scroll-margin-top:calc(var(--rcx-sticky-gap) + 18px);overflow:visible;isolation:isolate}
+.rcx-tab-section:before{content:"";position:absolute;z-index:-2;inset:0 -100vw;pointer-events:none;background-image:linear-gradient(color-mix(in srgb,var(--tx) 2.8%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--tx) 2.8%,transparent) 1px,transparent 1px);background-size:58px 58px;mask-image:linear-gradient(to bottom,transparent,black 12%,black 80%,transparent);opacity:.3}
+.rcx-tab-section:after{content:"";position:absolute;z-index:-1;top:12%;right:-6vw;width:clamp(240px,35vw,580px);height:clamp(240px,35vw,580px);border-radius:50%;pointer-events:none;background:radial-gradient(circle,color-mix(in srgb,var(--tx) 5%,transparent),transparent 68%);opacity:.42}
+.rcx-section-meta{max-width:1500px;margin:0 auto clamp(28px,4vw,52px);display:flex;justify-content:space-between;gap:12px;align-items:center;padding-bottom:11px;border-bottom:1px solid color-mix(in srgb,var(--tx) 18%,transparent);font:500 10px/1.4 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--mu)}
+.rcx-section-meta .rcx-section-index{color:var(--tx);display:flex;gap:10px;align-items:center}.rcx-section-index:before{content:"";width:28px;height:1px;background:var(--tx);display:inline-block}
+.rcx-section-content{position:relative;z-index:1;min-width:0}
+.rcx-hero{min-height:clamp(400px,67svh,760px);position:relative;display:flex;align-items:center;overflow:visible;margin:0 0 clamp(52px,8vw,108px);isolation:isolate}
+.rcx-hero-grid{position:absolute;inset:-8% -4% -5%;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 75% 48%,color-mix(in srgb,var(--tx) 10%,transparent),transparent 43%),linear-gradient(120deg,transparent 0 55%,color-mix(in srgb,var(--tx) 3%,transparent) 55.2%,transparent 55.5%);mask-image:linear-gradient(to bottom,black 55%,transparent)}
+.rcx-hero-grid:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent 0 70px,color-mix(in srgb,var(--tx) 11%,transparent) 71px,transparent 72px 144px);opacity:.28;transform:translate3d(0,var(--rcx-intro-parallax,0px),0);animation:rcxEnergyFlow 24s linear infinite}
+.rcx-hero-grid:after{content:"";position:absolute;right:3%;top:9%;width:min(42vw,560px);height:78%;opacity:.44;background:repeating-linear-gradient(90deg,transparent 0 20px,color-mix(in srgb,var(--tx) 40%,transparent) 21px 22px,transparent 23px 33px);clip-path:polygon(0 71%,5% 66%,9% 70%,14% 48%,19% 55%,24% 30%,30% 42%,35% 25%,42% 40%,47% 22%,53% 36%,59% 12%,64% 31%,69% 18%,74% 26%,80% 8%,86% 20%,92% 4%,100% 15%,100% 100%,0 100%);mask-image:linear-gradient(to bottom,black,transparent 95%);transform:translateY(var(--rcx-intro-parallax,0px))}
+.rcx-hero-copy{width:100%;position:relative;z-index:2;transform:translate3d(0,var(--rcx-intro-parallax,0px),0);will-change:transform}
+.rcx-eyebrow{display:flex;align-items:center;gap:10px;font:500 11px/1.5 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--mu);margin-bottom:clamp(22px,3vw,36px)}
+.rcx-live-dot{width:7px;height:7px;border-radius:50%;background:var(--tx);box-shadow:0 0 14px color-mix(in srgb,var(--tx) 70%,transparent);animation:rcxLivePulse 1.8s ease-in-out infinite}
+.rcx-hero h1{margin:0;max-width:1300px;line-height:.87;letter-spacing:-.075em;font-family:'Anton','Impact','Arial Black',sans-serif;font-size:clamp(54px,10.2vw,164px);font-weight:900;text-transform:uppercase}
+.rcx-hero-outline{display:block;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--tx) 88%,transparent);text-stroke:1px color-mix(in srgb,var(--tx) 88%,transparent)}
+.rcx-hero-solid{display:block;min-height:1em;margin-top:.08em;color:var(--tx);text-shadow:0 0 38px color-mix(in srgb,var(--tx) 11%,transparent)}
+.rcx-hero-bio{max-width:520px;margin:clamp(24px,4vw,44px) 0 0;color:var(--mu);font-size:clamp(14px,1.4vw,18px);line-height:1.8}
+.rcx-hero-bottom{margin-top:clamp(26px,4vw,45px);display:flex;justify-content:space-between;align-items:center;gap:16px;max-width:760px;font:500 10px/1.5 'IBM Plex Mono',monospace;letter-spacing:.13em;color:var(--mu);text-transform:uppercase}
+.rcx-hero-bottom a{color:var(--tx);text-decoration:none;padding:12px 16px;border:1px solid var(--ln);border-radius:99px;transition:background .3s var(--rcx-ease),color .3s var(--rcx-ease),transform .3s var(--rcx-ease)}
+.rcx-hero-bottom a:hover{background:var(--tx);color:var(--bg);transform:translateY(-2px)}
+.rcx-hero-bottom a span{display:inline-block;transition:transform .3s var(--rcx-ease)}
+.rcx-marquee{margin:0 calc(-1 * clamp(0px,1.4vw,20px)) clamp(44px,7vw,80px);overflow:hidden;border-top:1px solid color-mix(in srgb,var(--tx) 13%,transparent);border-bottom:1px solid color-mix(in srgb,var(--tx) 13%,transparent);padding:16px 0;white-space:nowrap;mask-image:linear-gradient(90deg,transparent,black 7%,black 93%,transparent)}
+.rcx-marquee-track{display:flex;width:max-content;animation:rcxMarquee 32s linear infinite;will-change:transform}
+.rcx-marquee span{font:700 clamp(21px,2.8vw,38px)/1 'Anton','Impact',sans-serif;letter-spacing:.05em;text-transform:uppercase;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--tx) 34%,transparent);padding-right:32px}
+.rcx-marquee b{color:var(--tx);font-weight:400;padding:0 22px}
+.rcx-market-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 16px}
+.rcx-market-stat{padding:13px 15px;border-top:1px solid var(--ln);background:linear-gradient(140deg,color-mix(in srgb,var(--p) 94%,transparent),transparent);min-width:0}
+.rcx-market-stat small{font:500 10px/1.5 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase}.rcx-market-stat strong{display:block;margin-top:6px;font-size:clamp(18px,2.1vw,30px);letter-spacing:-.045em;overflow-wrap:anywhere}
+.rcx-section-caption{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 18px;color:var(--mu);font:500 10px/1.5 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase}
+.rcx-section-caption b{color:var(--tx);font-weight:500}
+.rcx-tab-section .dashboard-shell,.rcx-tab-section .summary-layout,.rcx-tab-section .social-grid{position:relative}
+.rcx-tab-section .social-grid{margin-top:6px}
+.rcx-tab-section .month-report{margin-bottom:18px}
+.rcx-tab-section .r,.rcx-tab-section .t,.rcx-tab-section .card,.rcx-tab-section .social-card,.rcx-tab-section .month-report{transition:border-color .35s var(--rcx-ease),background-color .35s var(--rcx-ease),box-shadow .35s var(--rcx-ease),transform .35s var(--rcx-ease)}
+.rcx-tab-section .r:hover,.rcx-tab-section .social-card:hover,.rcx-tab-section .month-report:hover{border-color:color-mix(in srgb,var(--tx) 28%,var(--ln));box-shadow:0 18px 45px #0002}
+.rcx-scroll-end{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:clamp(32px,5vw,64px);padding-top:13px;border-top:1px solid color-mix(in srgb,var(--tx) 13%,transparent);font:500 10px/1.5 'IBM Plex Mono',monospace;letter-spacing:.15em;color:var(--mu);text-transform:uppercase}
+.rcx-scroll-end .scroll-arrow{font-size:18px;color:var(--tx);animation:rcxArrowDown 1.8s ease-in-out infinite}
+@keyframes rcxEnergyFlow{to{background-position:144px 0}}
+@keyframes rcxMarquee{to{transform:translateX(-50%)}}
+@keyframes rcxLivePulse{50%{opacity:.35;box-shadow:0 0 0 6px color-mix(in srgb,var(--tx) 5%,transparent)}}
+@keyframes rcxArrowDown{50%{transform:translateY(4px)}}
+@media(min-width:761px){
+  body>nav{top:0}
+  .rcx-tab-section{padding-left:clamp(0px,1.5vw,22px);padding-right:clamp(0px,1.5vw,22px);scroll-margin-top:82px}
+  .rcx-hero{margin-bottom:clamp(54px,7vw,100px)}
+  .rcx-tab-section:not(.rcx-section-home){min-height:calc(100svh - 76px)}
+  .rcx-section-meta{position:relative}
+}
+@media(max-width:760px){
+  :root{--rcx-sticky-gap:16px}
+  .rcx-tab-section{min-height:auto;padding:32px 0 66px;scroll-margin-top:14px}
+  .rcx-section-meta{margin-bottom:22px;font-size:9px;letter-spacing:.11em}
+  .rcx-hero{min-height:clamp(360px,65svh,600px);margin:0 0 50px}
+  .rcx-hero h1{font-size:clamp(52px,13.4vw,95px);letter-spacing:-.065em}
+  .rcx-hero-bio{font-size:14px;max-width:340px}
+  .rcx-hero-bottom{font-size:9px;align-items:flex-start;flex-direction:column}
+  .rcx-hero-grid:after{right:-22%;top:19%;width:70%;height:62%;opacity:.22}
+  .rcx-marquee{margin:0 0 42px;padding:13px 0}
+  .rcx-market-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .rcx-market-stat{padding:10px 11px}
+  .rcx-market-stat strong{font-size:23px}
+  .rcx-scroll-end{margin-top:30px;font-size:9px}
+  .rcx-tab-section:before{background-size:40px 40px;opacity:.18}
+}
+@media(prefers-reduced-motion:reduce){.rcx-hero-grid:before,.rcx-marquee-track,.rcx-live-dot,.rcx-scroll-end .scroll-arrow{animation:none!important}.rcx-hero-copy,.rcx-hero-grid:before,.rcx-hero-grid:after{transform:none!important}}
+</style><script src="https://unpkg.com/lenis@1.3.26/dist/lenis.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><div id="rcxScrollProgress" aria-hidden="true"></div>
+<canvas id="rcxParticleCanvas" aria-hidden="true"></canvas><div id="rcxCursorHalo" aria-hidden="true"></div>
 <div id="bootScreen">
   <div class="boot-scanlines"></div>
   <div class="boot-frame">
-    <div class="boot-logo">TRADING JOURNAL</div>
+    <div class="boot-logo">RCX JOURNAL</div>
     <div class="boot-sub">8-BIT EDITION // SECURE CLOUD // PLAYER 01</div>
     <div class="boot-screenbox">
       <div class="boot-head"><span id="bootStage">BOOTING...</span><span id="bootPct">0%</span></div>
@@ -170,7 +321,7 @@ h2{font-size:20px;font-weight:800;letter-spacing:-.025em;margin:22px 0 12px}.t b
 </div>
 <div id="keyGate">
   <div class="key-card">
-    <div class="key-brand">PRIVATE TRADING JOURNAL</div>
+    <div class="key-brand">RCX JOURNAL · PRIVATE TRADING TERMINAL</div>
     <h1>License Key</h1>
     <p>กรอก Key เพื่อเข้าใช้งาน ข้อมูล Trade จะถูกผูกกับบัญชี Key และเก็บบน Cloud เพื่อให้ปิดเว็บหรือเปลี่ยนอุปกรณ์แล้วข้อมูลยังอยู่</p>
     <label class="key-label" for="keyInput">LICENSE KEY</label>
@@ -207,7 +358,7 @@ h2{font-size:20px;font-weight:800;letter-spacing:-.025em;margin:22px 0 12px}.t b
     <div class="dev-card" style="margin-top:12px"><h3>Devices</h3><div id="devDevices" class="dev-note">เลือก Devices จากรายการ Key ด้านบน</div></div>
   </div>
 </div>
-<div id="app"><div class="top"><b id="ttl"></b><span class="row"><span id="clockBadge" class="clock-badge" title="Local trading clock">--:--</span><span id="cloudState" class="cloud-dot"></span><span class="c" id="lg" tabindex="0"></span><span class="c" id="th" tabindex="0">◐</span><span class="c" id="settingsBtn" tabindex="0" aria-label="Settings">⚙</span></span></div><div id="m"></div></div><button class="fab" id="fab"></button><nav><div id="nav"></div></nav><div id="ovs"></div>
+<div id="app"><div class="top"><div class="rcx-brandline"><span class="rcx-monogram">RCX</span><div class="rcx-brandtext"><strong>RCX Journal</strong><small id="ttl" class="page-label"></small></div></div><span class="row"><span id="clockBadge" class="clock-badge" title="Local trading clock">--:--</span><span id="cloudState" class="cloud-dot"></span><span class="c" id="lg" tabindex="0"></span><span class="c" id="th" tabindex="0">◐</span><span class="c" id="settingsBtn" tabindex="0" aria-label="Settings">⚙</span></span></div><div id="m"></div></div><button class="fab" id="fab"></button><nav><div id="nav"></div></nav><div id="ovs"></div>
 <script>
 const D={home:['หน้าหลัก','Home'],trades:['เทรด','Trades'],cal:['ปฏิทิน','Calendar'],sum:['สรุป','Summary'],new:['+ บันทึกเทรด','+ Add trade'],today:['วันนี้','Today'],pt:['ไม้','trades'],win:['ชนะ','won'],lose:['แพ้','lost'],net:['กำไรรวม','Total profit'],wr:['ชนะกี่ %','Win rate'],aw:['ชนะแต่ละครั้งได้เฉลี่ย','Avg win'],al:['แพ้แต่ละครั้งเสียเฉลี่ย','Avg loss'],none:['ยังไม่มีข้อมูล','Nothing yet'],buy:['ซื้อ','BUY'],sell:['ขาย','SELL'],sym:['เทรดอะไร?','What did you trade?'],ent:['ราคาเข้า','Entry'],ext:['ราคาออก','Exit'],size:['ขนาด','Size'],pnl:['ได้/เสีย','Result'],save:['บันทึก','Save'],close:['ปิด','Close'],del:['ลบ','Delete'],edit:['แก้ไข','Edit'],more:['+ เพิ่มรายละเอียด (ไม่ต้องก็ได้)','+ More details (optional)'],sl:['จุดตัดขาดทุน (SL)','Stop loss'],tp:['เป้ากำไร (TP)','Take profit'],setup:['ใช้กลยุทธ์ไหน?','Setup'],emo:['ตอนเทรดรู้สึกยังไง?','How did you feel?'],mis:['พลาดอะไรไหม?','Any mistakes?'],note:['จดไว้หน่อย','Notes'],date:['วัน','Date'],time:['เวลา','Time'],risk:['เสี่ยง','Risk'],rew:['หวังได้','Reward'],rr:['คุ้มเสี่ยง','R:R'],best:['ไม้ที่ได้มากสุด','Best trade'],worst:['ไม้ที่เสียมากสุด','Worst trade'],pf:['ชนะรวมเทียบกับแพ้รวม','Wins vs losses (profit factor)'],dd:['ขาดทุนสะสมหนักสุด','Worst drop'],ddh:['ตกลงจากจุดสูงสุดมากสุด','Biggest fall from a peak'],pfh:['มากกว่า 1 = กำไร','Above 1 = profitable'],sch:['ค้นหา…','Search…'],all:['ทั้งหมด','All'],eq:['เงินในพอร์ต','Account'],byS:['กลยุทธ์ไหนดี','By setup'],bySy:['เทรดอะไรดี','By symbol'],byE:['อารมณ์กับผลลัพธ์','Mood vs result'],ins:['ข้อสังเกต','Tips for you'],set:['ตั้งค่า','Settings'],bal:['เงินทุนเริ่มต้น (฿)','Starting money (฿)'],reset:['กลับไปใช้ข้อมูลตัวอย่าง','Reset to sample'],clear:['ลบข้อมูลทั้งหมด','Delete everything'],sure:['ลบรายการนี้?','Delete this trade?'],fill:['กรอก ชื่อ, ราคาเข้า, ราคาออก, ขนาด','Fill symbol, entry, exit, size'],hint:['กรอกแค่นี้ ที่เหลือคำนวณให้','Just these — we do the math'],ovr:['แก้ตัวเลขได้เอง','Edit result manually'],hold:['ถือกี่นาที','Held (min)'],calm:['นิ่ง','Calm'],cnf:['มั่นใจ','Confident'],fomo:['กลัวตกรถ','FOMO'],fear:['กลัว','Scared'],greed:['โลภ','Greedy'],bored:['เบื่อ','Bored'],revenge:['เทรดแก้แค้น','Revenge'],lateEntry:['เข้าช้า','Entered late'],slMoved:['ขยับ SL','Moved SL'],earlyExit:['ออกเร็วไป','Exited early'],overtrade:['เทรดเยอะไป','Overtraded'],tpMissed:['ไม่ถึงเป้า','Missed TP'],settings:['ตั้งค่า','Settings'],social:['เพื่อน & แชต','Friends & Chat'],appearance:['หน้าตา','Appearance'],language:['ภาษา','Language'],theme:['ธีม','Theme'],dark:['มืด','Dark'],light:['สว่าง','Light'],currency:['สกุลเงินบัญชี','Account currency'],currencyHint:['ค่าเงินหลักของพอร์ต ใช้คำนวณยอดรวมบน Dashboard','Base portfolio currency used for Dashboard totals'],startBal:['เงินทุนเริ่มต้น','Starting balance'],tradeCurrency:['สกุลเงินของ Trade','Trade currency'],tradeCurrencyHint:['เลือก USD / USC / THB หรือสกุลอื่นได้โดยไม่เปลี่ยนค่าเงินหลักของพอร์ต','Use USD / USC / THB or another currency without changing the portfolio base currency'],fxRate:['FX → เงินพอร์ต','FX → account'],fxRateHint:['1 หน่วยของ Trade = กี่หน่วยของสกุลเงินพอร์ต','1 unit of this Trade = how many units of the account currency'],sameCurrency:['อัตรา FX 1:1','FX 1:1'],accountCurrency:['สกุลเงินพอร์ต','Portfolio currency'],closeSettings:['ปิดการตั้งค่า','Close settings'],saveSettings:['บันทึกการตั้งค่า','Save settings'],timezone:['เขตเวลา','Timezone'],profile:['โปรไฟล์','Profile'],nickname:['ชื่อเล่น','Nickname'],tradingStyle:['สไตล์การเทรด','Trading style'],friendCode:['Friend Code','Friend Code'],avatar:['รูปโปรไฟล์','Profile photo'],confluences:['องค์ประกอบที่ใช้','Trade confluences'],monthlyReport:['สรุปรายเดือน','Monthly report'],wins:['ชนะ','Wins'],losses:['แพ้','Losses'],breakeven:['เสมอ','Breakeven'],currencyNoConvert:['แต่ละ Trade เลือกสกุลเงินของตัวเองได้ และถ้าต่างจากพอร์ต ระบบจะใช้ FX rate ของ Trade เพื่อรวมสถิติ','Each Trade can use its own currency. Different currencies use that Trade\'s FX rate for portfolio totals'],localSave:['Cloud + เครื่องนี้','Cloud + this device'],loading:['กำลังโหลด','Loading'],rg:{T:['วันนี้','Today'],7:['7 วัน','7D'],M:['เดือนนี้','Month'],90:['3 เดือน','3M'],A:['ทั้งหมด','All']},dw:[['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'],['Sun','Mon','Tue','Wed','Thu','Fri','Sat']]};
 let S=null,v='home',rg='M',cm,fl='',q='',F={};
@@ -338,7 +489,7 @@ function socialHTML(){return `<div class="social-grid">
 <div class="social-card group-card"><h3>สร้างกลุ่มแชต</h3><div class="f"><input id="groupName" class="social-input" maxlength="48" placeholder="ชื่อกลุ่มใหม่"><small>ใส่ Friend Code ได้หลายคน คั่นด้วย comma หรือเว้นวรรค</small><input id="groupFriendCodes" class="social-input" placeholder="1234567890, 1234509876"><button class="small-b" data-social="create-group">สร้างกลุ่ม</button></div><div id="chatGroups" style="margin-top:10px"><div class="social-empty">กำลังโหลด…</div></div></div>
 <div class="social-card chat-card"><div class="row sb"><h3 style="margin:0" id="chatTitle">เลือกเพื่อนหรือกลุ่มเพื่อเริ่มแชต</h3><span class="social-pill">Private chat</span></div><div class="chat-shell" style="margin-top:10px"><div id="chatMessages" class="chat-messages"><div class="social-empty">ข้อความจะแสดงตรงนี้</div></div><div class="chat-compose"><div><textarea id="chatText" class="social-input" rows="1" placeholder="พิมพ์ข้อความ…"></textarea><div class="row" style="margin-top:7px"><input id="chatAttachment" type="file" accept="image/*,video/*" class="social-input" style="max-width:100%;min-height:38px;padding:5px"><small>รูปสูงสุด 25 MB · วิดีโอสูงสุด 50 MB</small></div></div><button class="small-b" data-social="send-message">ส่ง</button></div></div></div>
 </div>`}
-async function loadSocialView(){const root=document.getElementById('m');if(!root||v!=='social')return;if(!sessionToken){root.innerHTML='<div class="social-empty">กรุณาเข้าสู่ระบบด้วย License Key</div>';return}root.innerHTML=socialHTML();try{const results=await Promise.all([rpcUser('tj_profile_get'),rpcUser('tj_friend_requests'),rpcUser('tj_friend_list'),rpcUser('tj_chat_list')]);profileData=results[0]||profileData;socialCache.requests=results[1]||{incoming:[],outgoing:[]};socialCache.friends=Array.isArray(results[2])?results[2]:[];socialCache.groups=Array.isArray(results[3])?results[3]:[];root.innerHTML=socialHTML();renderSocialLists();if(socialGroupId)await loadChatMessages(socialGroupId)}catch(e){root.querySelectorAll('.social-empty').forEach(x=>x.textContent='ระบบเพื่อน/แชตต้องใช้ SQL migration: '+(e.message||'RPC missing'));}}
+async function loadSocialView(){const root=document.getElementById('rcx-section-social-content');if(!root)return;if(!sessionToken){root.innerHTML='<div class="social-empty">กรุณาเข้าสู่ระบบด้วย License Key</div>';return}const requestId=++socialViewRequestId;root.innerHTML=socialHTML();try{const results=await Promise.all([rpcUser('tj_profile_get'),rpcUser('tj_friend_requests'),rpcUser('tj_friend_list'),rpcUser('tj_chat_list')]);if(requestId!==socialViewRequestId||root!==document.getElementById('rcx-section-social-content'))return;profileData=results[0]||profileData;socialCache.requests=results[1]||{incoming:[],outgoing:[]};const selfId=profileData?.key_id;const selfCode=profileData?.friend_code;socialCache.friends=(Array.isArray(results[2])?results[2]:[]).filter(x=>!(selfId&&x.key_id===selfId)&&!(selfCode&&x.friend_code===selfCode));socialCache.groups=Array.isArray(results[3])?results[3]:[];root.innerHTML=socialHTML();renderSocialLists();if(socialGroupId&&v==='social')await loadChatMessages(socialGroupId)}catch(e){if(requestId!==socialViewRequestId||root!==document.getElementById('rcx-section-social-content'))return;root.querySelectorAll('.social-empty').forEach(x=>x.textContent='ระบบเพื่อน/แชตต้องใช้ SQL migration: '+(e.message||'RPC missing'));}}
 function renderSocialLists(){
   const r=document.getElementById('friendRequests');if(!r)return;
   const incoming=socialCache.requests.incoming||[],outgoing=socialCache.requests.outgoing||[];
@@ -394,7 +545,37 @@ async function socialAction(action,el){try{
  if(action==='send-message'){if(!socialGroupId)throw new Error('เลือกเพื่อนหรือกลุ่มก่อน');const text=document.getElementById('chatText').value.trim(),file=document.getElementById('chatAttachment').files?.[0];if(!text&&!file)throw new Error('พิมพ์ข้อความหรือเลือกรูป/วิดีโอ');let path='';if(file){if(!file.type.startsWith('image/')&&!file.type.startsWith('video/'))throw new Error('ส่งได้เฉพาะรูปภาพและวิดีโอ');const max=file.type.startsWith('video/')?50*1024*1024:25*1024*1024;if(file.size>max)throw new Error(file.type.startsWith('video/')?'วิดีโอเกิน 50 MB':'รูปเกิน 25 MB');const sendBtn=el;sendBtn.disabled=true;sendBtn.textContent='กำลังอัปโหลด…';try{const info=await callChatMedia({action:'sign-upload',group_id:socialGroupId,filename:file.name,mime:file.type,size:file.size});const up=await sb.storage.from('tj-chat-media').uploadToSignedUrl(info.path,info.token,file,{contentType:file.type,upsert:false});if(up.error)throw up.error;path=info.path}finally{sendBtn.disabled=false;sendBtn.textContent='ส่ง'}}await rpcUser('tj_chat_send_storage',{p_group_id:socialGroupId,p_body:text,p_attachment_name:file?.name||'',p_attachment_mime:file?.type||'',p_storage_path:path,p_attachment_size:file?.size||0});document.getElementById('chatText').value='';document.getElementById('chatAttachment').value='';await loadChatMessages(socialGroupId);await refreshSocial();return}
  }catch(e){setSocialNotice(e.message||'เกิดข้อผิดพลาด',true);toast(e.message||'เกิดข้อผิดพลาด')}}
 V.social=()=>socialHTML();
-function R(){const ro=document.documentElement;ro.dataset.theme=S.cfg.theme;ro.lang=S.cfg.lang;ro.dataset.view=v;$('#ttl').textContent=T(v);$('#lg').textContent=TH()?'EN':'ไทย';$('#fab').textContent=T('new');$('#nav').innerHTML=['home','trades','cal','sum','social'].map(k=>`<a class="tab ${v==k?'on':''}" tabindex=0 data-a=go data-v=${k}>${T(k)}</a>`).join('');$('#m').innerHTML=V[v]()}
+const RCX_TABS=['home','trades','cal','sum','social'];
+const RCX_TAB_META={home:['01','OVERVIEW / FINANCIAL PULSE'],trades:['02','TRADE ARCHIVE / EXECUTION'],cal:['03','CALENDAR / HISTORY'],sum:['04','PERFORMANCE / EDGE'],social:['05','NETWORK / PRIVATE MESSAGING']};
+let rcxHeroTimer=null,rcxHeroScrambleTimer=null,socialViewRequestId=0,rcxLastActiveSection='home';
+function rcxHeroMarkup(){
+ return `<section id="rcxHero" class="rcx-hero" aria-label="RCX Journal introduction"><div class="rcx-hero-grid"></div><div class="rcx-hero-copy"><div class="rcx-eyebrow"><span class="rcx-live-dot"></span><span>RCX JOURNAL / PRIVATE FINANCIAL TERMINAL</span></div><h1><span class="rcx-hero-outline">TRADE WITH</span><span id="rcxHeroWord" class="rcx-hero-solid">DISCIPLINE</span></h1><p class="rcx-hero-bio">A clearer view of every decision. Record each position, understand your risk, and build a trading process you can measure.</p><div class="rcx-hero-bottom"><span>DATA · RISK · EXECUTION · REVIEW</span><a href="#rcx-section-trades" data-a="go" data-v="trades">EXPLORE YOUR TRADES <span>↘</span></a></div></div></section><div class="rcx-marquee" aria-hidden="true"><div class="rcx-marquee-track"><span>RISK MANAGEMENT <b>✳</b> EXECUTION <b>✳</b> EQUITY CURVE <b>✳</b> MARKET STRUCTURE <b>✳</b> DISCIPLINE <b>✳</b> JOURNAL <b>✳</b></span><span>RISK MANAGEMENT <b>✳</b> EXECUTION <b>✳</b> EQUITY CURVE <b>✳</b> MARKET STRUCTURE <b>✳</b> DISCIPLINE <b>✳</b> JOURNAL <b>✳</b></span></div></div><div class="rcx-market-stats"><div class="rcx-market-stat"><small>01 / TOTAL TRADES</small><strong>${all().length.toLocaleString()}</strong></div><div class="rcx-market-stat"><small>02 / WIN RATE</small><strong>${Math.round(st(all()).wr)}%</strong></div><div class="rcx-market-stat"><small>03 / NET P&L</small><strong>${money(st(all()).net)}</strong></div><div class="rcx-market-stat"><small>04 / PORTFOLIO</small><strong>${esc(S.cfg.currency||'THB')}</strong></div></div>`;
+}
+function initRcxHero(){
+ if(rcxHeroTimer){clearInterval(rcxHeroTimer);rcxHeroTimer=null}if(rcxHeroScrambleTimer){clearInterval(rcxHeroScrambleTimer);rcxHeroScrambleTimer=null}
+ const el=document.getElementById('rcxHeroWord');if(!el)return;const words=['DISCIPLINE','PRECISION','EXECUTION','CONSISTENCY'];let idx=0;const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+ if(reduced)return;rcxHeroTimer=setInterval(()=>{const target=words[(++idx)%words.length];let frame=0;const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';if(rcxHeroScrambleTimer)clearInterval(rcxHeroScrambleTimer);rcxHeroScrambleTimer=setInterval(()=>{frame++;const progress=frame/12;el.textContent=target.split('').map((ch,i)=>i<Math.floor(progress*target.length)?ch:chars[Math.floor(Math.random()*chars.length)]).join('');if(frame>=12){clearInterval(rcxHeroScrambleTimer);rcxHeroScrambleTimer=null;el.textContent=target}},32)},4000);
+}
+function updateRcxActiveSection(){
+ const sections=[...document.querySelectorAll('[data-app-section]')];if(!sections.length)return;
+ const desktop=innerWidth>=761;const nav=document.querySelector('body>nav');const threshold=desktop?Math.max(68,(nav?.getBoundingClientRect().height||48)+28):Math.min(140,innerHeight*.28);
+ let current=sections.find(el=>{const r=el.getBoundingClientRect();return r.top<=threshold&&r.bottom>threshold});
+ if(!current){current=sections.reduce((best,el)=>Math.abs(el.getBoundingClientRect().top-threshold)<Math.abs(best.getBoundingClientRect().top-threshold)?el:best,sections[0])}
+ const next=current.dataset.appSection;if(!RCX_TABS.includes(next)||next===v)return;
+ v=next;rcxLastActiveSection=next;document.documentElement.dataset.view=next;
+ document.querySelectorAll('#nav [data-v]').forEach(a=>{const active=a.dataset.v===next;a.classList.toggle('on',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+ const title=document.getElementById('ttl');if(title)title.textContent=T(next);
+ try{localStorage.setItem(UI,JSON.stringify({v,rg,cm}))}catch(e){}
+ if(next==='social'&&sessionToken)loadSocialView();
+}
+function R(){
+ const root=$('#m');if(!root)return;const wasReady=root.dataset.stackReady==='1';let restore=null;
+ if(wasReady){const line=innerWidth>=761?(document.querySelector('body>nav')?.getBoundingClientRect().height||48)+28:Math.min(140,innerHeight*.28);const sections=[...root.querySelectorAll('[data-app-section]')];let active=sections.find(el=>{const r=el.getBoundingClientRect();return r.top<=line&&r.bottom>line});if(!active)active=document.getElementById('rcx-section-'+v)||sections[0];if(active)restore={id:active.id,offset:window.scrollY-(window.scrollY+active.getBoundingClientRect().top)}}
+ const ro=document.documentElement;ro.dataset.theme=S.cfg.theme;ro.lang=S.cfg.lang;ro.dataset.view=v;$('#ttl').textContent=T(v);$('#lg').textContent=TH()?'EN':'ไทย';$('#fab').textContent=T('new');$('#nav').innerHTML=RCX_TABS.map((k,i)=>`<a class="tab ${v===k?'on':''}" tabindex=0 aria-current="${v===k?'page':'false'}" data-a=go data-v=${k}>${T(k)}</a>`).join('');
+ root.innerHTML=RCX_TABS.map((k,i)=>{const meta=RCX_TAB_META[k];return `<section class="rcx-tab-section rcx-section-${k}" id="rcx-section-${k}" data-app-section="${k}"><div class="rcx-section-meta"><span class="rcx-section-index">${meta[0]} / 05</span><span>${meta[1]}</span></div>${k==='home'?rcxHeroMarkup():''}<div class="rcx-section-content" id="rcx-section-${k}-content">${V[k]()}</div><div class="rcx-scroll-end"><span>RCX JOURNAL / ${meta[0]} — ${meta[1]}</span><span class="scroll-arrow" aria-hidden="true">↓</span></div></section>`}).join('');root.dataset.stackReady='1';scheduleRcxReveal();initRcxHero();
+ if(wasReady&&restore){requestAnimationFrame(()=>{const el=document.getElementById(restore.id);if(!el)return;const top=window.scrollY+el.getBoundingClientRect().top;const target=Math.max(0,top+restore.offset);if(rcxLenis)rcxLenis.scrollTo(target,{immediate:true,force:true});else window.scrollTo({top:target,behavior:'auto'});scheduleRcxReveal();updateRcxScrollVisuals()})}
+ if(v==='social'&&sessionToken)setTimeout(loadSocialView,0);
+}
 function ov(h){const e=document.createElement('div');e.className='ov';e.innerHTML=`<div class=sh>${h}</div>`;e.onclick=x=>{if(x.target==e)e.remove()};$('#ovs').appendChild(e);return e}
 const chips=(a,sel,key,cls)=>a.map(x=>`<span class="c ${cls||''} ${sel==x[0]?'on':''}" tabindex=0 data-p="${key}:${x[0]}">${x[1]}</span>`).join('');
 function readDraft(){try{const x=JSON.parse(localStorage.getItem(DRAFT)||'null');const keyId=accountInfo?.key_id||'';if(x&&x.deviceId===deviceId&&keyId&&x.keyId===keyId)return x;if(x)clearDraft();return null}catch(e){return null}}
@@ -422,6 +603,10 @@ function openSettings(){
     <div class="settings-group"><div class="settings-title">${T('appearance')}</div>
       <div class="settings-item"><div><b>${T('language')}</b><small>ไทย / English</small></div><select id="setLang" class="settings-select">${langs.map(x=>`<option value="${x[0]}" ${S.cfg.lang===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div>
       <div class="settings-item"><div><b>${T('theme')}</b><small>${TH()?'เลือกโหมดการแสดงผล':'Choose how Journal looks'}</small></div><select id="setTheme" class="settings-select"><option value="dark" ${S.cfg.theme==='dark'?'selected':''}>${T('dark')}</option><option value="light" ${S.cfg.theme==='light'?'selected':''}>${T('light')}</option></select></div>
+    </div>
+    <div class="settings-group"><div class="settings-title">RCX INTERFACE</div>
+      <div class="settings-item"><div><b>UI sound effects</b><small>Soft terminal ticks, navigation tones and save chimes</small></div><label class="rcx-toggle"><input id="setUiSounds" type="checkbox" ${S.cfg.uiSounds===false?'':'checked'}><span class="rcx-toggle-track"></span></label></div>
+      <div class="settings-item"><div><b>Ambient motion</b><small>Cursor glow, particle trails and card hover depth</small></div><label class="rcx-toggle"><input id="setMotionEffects" type="checkbox" ${S.cfg.motionEffects===false?'':'checked'}><span class="rcx-toggle-track"></span></label></div>
     </div>
     <div class="settings-group"><div class="settings-title">Time & timezone</div>
       <div class="settings-item"><div><b>${T('timezone')}</b><small>Clock shown in the top bar</small></div><select id="setTimezone" class="settings-select">${TIMEZONES.map(x=>`<option value="${x[0]}" ${(S.cfg.timezone||'Asia/Bangkok')===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div>
@@ -457,13 +642,15 @@ async function saveSettings(){
   S.cfg.lang=document.getElementById('setLang')?.value||S.cfg.lang;
   S.cfg.theme=document.getElementById('setTheme')?.value||S.cfg.theme;
   S.cfg.timezone=document.getElementById('setTimezone')?.value||S.cfg.timezone||'Asia/Bangkok';
+  S.cfg.uiSounds=document.getElementById('setUiSounds')?.checked!==false;
+  S.cfg.motionEffects=document.getElementById('setMotionEffects')?.checked!==false;
   S.cfg.currency=e.dataset.currency||S.cfg.currency||'THB';
   S.cfg.bal=Number(document.getElementById('setBal')?.value)||0;
   save();
   const nick=document.getElementById('setNickname')?.value?.trim();const style=document.getElementById('setTradingStyle')?.value||profileData?.trading_style||'Other';const avatar=avatarDraftData||profileData?.avatar_data||'';if(nick){try{await saveProfile(nick,style,avatar)}catch(err){toast('ตั้งค่าท้องถิ่นแล้ว แต่บันทึกโปรไฟล์ Cloud ไม่สำเร็จ: '+(err.message||''))}}
   avatarDraftData='';e.remove();
   R();startClock();
-  showCloud('Settings saved',true);toast('บันทึกการตั้งค่าแล้ว');
+  showCloud('Settings saved',true);toast('บันทึกการตั้งค่าแล้ว');if(window.RCXFX)RCXFX.play('success');
 }
 function buildBoot(){const bar=document.getElementById('bootBar');if(!bar)return;bar.innerHTML='';for(let i=0;i<24;i++){const d=document.createElement('span');d.className='boot-block';bar.appendChild(d)}}
 function bootProgress(pct,status,stage){const blocks=[...document.querySelectorAll('.boot-block')];const n=Math.max(0,Math.min(24,Math.round(pct/100*24)));blocks.forEach((b,i)=>b.classList.toggle('on',i<n));const p=document.getElementById('bootPct'),st=document.getElementById('bootStatus'),sg=document.getElementById('bootStage');if(p)p.textContent=Math.round(pct)+'%';if(st)st.textContent=status||'';if(sg){sg.textContent=stage||'LOADING...';sg.classList.toggle('boot-stage-blink',pct<100)}}
@@ -481,10 +668,32 @@ document.getElementById('devLogout').onclick=logoutLicense;
 document.getElementById('devGenerate').onclick=async()=>{try{const x=await devCall('tj_admin_create_key',{p_type:document.getElementById('devKeyType').value,p_label:document.getElementById('devKeyLabel').value.trim(),p_plan:document.getElementById('devKeyPlan').value});document.getElementById('devGenerated').innerHTML=`<b>เก็บ Key นี้ไว้:</b> <span class="dev-k">${esc(x.key)}</span> <button class="dev-btn" id="copyGenerated" style="min-height:30px;padding:4px 8px">Copy</button>`;document.getElementById('copyGenerated').onclick=()=>navigator.clipboard&&navigator.clipboard.writeText(x.key);await renderDev()}catch(e){document.getElementById('devGenerated').textContent=e.message||'Generate failed'}};
 document.querySelectorAll('[data-devtab]').forEach(b=>b.onclick=()=>{devTab=b.dataset.devtab;setDevStatus();renderDev()});
 document.addEventListener('click',async e=>{const rid=e.target.dataset.devRevoke;if(rid){if(!confirm('Revoke Key นี้?'))return;try{await devCall('tj_admin_revoke_key',{p_key_id:rid});if(devSelectedKey===rid)devSelectedKey=null;document.getElementById('devDevices').textContent='เลือก Devices จากรายการ Key ด้านบน';await renderDev()}catch(err){alert(err.message||'Revoke failed')}}const renewId=e.target.dataset.devRenew;if(renewId){const sel=document.querySelector(`[data-dev-renew-plan="${renewId}"]`);const plan=sel?.value||'1 month';if(!confirm(`ต่ออายุ Key นี้เป็น ${plan}?`))return;try{await devCall('tj_admin_renew_key',{p_key_id:renewId,p_plan:plan});toast('ต่ออายุ Key สำเร็จ');await renderDev()}catch(err){alert(err.message||'Renew failed')}}const did=e.target.dataset.devLogoutDevice;if(did){if(!confirm('Log out device นี้?'))return;try{await devCall('tj_admin_force_logout_device',{p_device_id:did});if(devSelectedKey)await showDevices(devSelectedKey);await renderDev()}catch(err){alert(err.message||'Device logout failed')}}const kid=e.target.dataset.devDevices;if(kid)showDevices(kid)});
+let rcxLenis=null,rcxRevealObserver=null,rcxRevealMutation=null,rcxRevealQueued=false,rcxScrollFrame=0;
+function switchRcxTab(next){
+ if(!RCX_TABS.includes(next))return;const target=document.getElementById('rcx-section-'+next);if(!target)return;
+ v=next;rcxLastActiveSection=next;document.documentElement.dataset.view=next;document.querySelectorAll('#nav [data-v]').forEach(a=>{const active=a.dataset.v===next;a.classList.toggle('on',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});const title=document.getElementById('ttl');if(title)title.textContent=T(next);try{localStorage.setItem(UI,JSON.stringify({v,rg,cm}))}catch(e){}
+ const desktop=innerWidth>=761,nav=document.querySelector('body>nav'),offset=desktop?-((nav?.offsetHeight||48)+18):-16;const top=window.scrollY+target.getBoundingClientRect().top+offset;
+ if(S?.cfg?.motionEffects===false||window.matchMedia('(prefers-reduced-motion: reduce)').matches){window.scrollTo({top,behavior:'auto'})}else if(rcxLenis){rcxLenis.scrollTo(top,{duration:1.35,lerp:.1,lock:false,force:true})}else{window.scrollTo({top,behavior:'smooth'})}
+ if(window.RCXFX)window.RCXFX.play('nav');
+}
+// Put the shared tab bar above the content on desktop; mobile keeps its fixed bottom bar.
+(()=>{const nav=document.querySelector('body>nav'),app=document.getElementById('app');if(nav&&app&&nav.previousElementSibling!==app)app.parentNode.insertBefore(nav,app)})();
+function applyRcxScrollReveal(){const root=document.getElementById('m');if(!root)return;const selector='h2,.hero,.tiles>.t,.equity-card,.dashboard-history,.r,.social-card,.month-report,.settings-group,.dev-card,.ins,.profile-card,.chat-card,.symbol-performance,.monthly-report-card';let i=0;root.querySelectorAll(selector+':not([data-scroll-reveal])').forEach(el=>{if(el.closest('.ov,#devPanel'))return;el.setAttribute('data-scroll-reveal','');el.style.setProperty('--rcx-reveal-delay',Math.min(i++%6,4)*55+'ms');if(rcxRevealObserver)rcxRevealObserver.observe(el);else el.classList.add('rcx-in-view')})}
+function scheduleRcxReveal(){if(rcxRevealQueued)return;rcxRevealQueued=true;requestAnimationFrame(()=>{rcxRevealQueued=false;applyRcxScrollReveal()})}
+function updateRcxScrollVisuals(){rcxScrollFrame=0;const doc=document.documentElement,scrollY=window.scrollY||doc.scrollTop||0,max=Math.max(1,doc.scrollHeight-window.innerHeight),progress=Math.min(1,Math.max(0,scrollY/max));const bar=document.getElementById('rcxScrollProgress');if(bar)bar.style.transform=`scaleX(${progress})`;doc.style.setProperty('--rcx-hero-parallax',Math.min(scrollY,1500)*-.055+'px');doc.style.setProperty('--rcx-hero-title-parallax',Math.min(scrollY,950)*-.025+'px');doc.style.setProperty('--rcx-intro-parallax',Math.min(scrollY,900)*-.035+'px');updateRcxActiveSection()}
+function scheduleRcxScrollVisuals(){if(!rcxScrollFrame)rcxScrollFrame=requestAnimationFrame(updateRcxScrollVisuals)}
+function initRcxScrollExperience(){
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduce&&window.Lenis){try{rcxLenis=new Lenis({lerp:.1,duration:1.5,smoothWheel:true,syncTouch:false,wheelMultiplier:.9,touchMultiplier:1,allowNestedScroll:true,prevent:(node)=>!!node?.closest?.('.ov,.sh,.settings-sheet,#devPanel,.chat-messages,.dev-table-wrap')});window.RCXLenis=rcxLenis;const raf=time=>{if(!rcxLenis)return;rcxLenis.raf(time);requestAnimationFrame(raf)};requestAnimationFrame(raf)}catch(err){rcxLenis=null;document.documentElement.style.scrollBehavior=reduce?'auto':'smooth'}}else{document.documentElement.style.scrollBehavior=reduce?'auto':'smooth'}
+  if('IntersectionObserver'in window){rcxRevealObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('rcx-in-view');rcxRevealObserver.unobserve(entry.target)}}),{threshold:.08,rootMargin:'0px 0px -5% 0px'})}
+  scheduleRcxReveal();const root=document.getElementById('m');if(root&&'MutationObserver'in window){rcxRevealMutation=new MutationObserver(scheduleRcxReveal);rcxRevealMutation.observe(root,{childList:true,subtree:true})}
+  window.addEventListener('scroll',scheduleRcxScrollVisuals,{passive:true});window.addEventListener('resize',scheduleRcxScrollVisuals,{passive:true});scheduleRcxScrollVisuals();
+}
+initRcxScrollExperience();
 document.addEventListener('click',e=>{const p=e.target.closest('[data-p]');if(p&&F.el){const[k,rawX]=p.dataset.p.split(':');const x=k==='conf'?decodeURIComponent(rawX):rawX;if(k==='conf'){F.confluences=F.confluences||[];const ix=F.confluences.indexOf(x);if(ix>=0)F.confluences.splice(ix,1);else F.confluences.push(x);p.classList.toggle('on',F.confluences.includes(x));const sm=p.closest('details')?.querySelector('summary');if(sm)sm.textContent=`${T('confluences')} · ${F.confluences.length} selected`;calc();writeDraft();return}if(k=='sym'){document.getElementById('fs').value=x;const l=all().reverse().find(t=>t.symbol==x),z=document.getElementById('fz');if(l&&!z.value)z.value=l.size;p.parentNode.querySelectorAll('.c').forEach(c=>c.classList.toggle('on',c==p))}else if(k=='mis'){const i=F.mistakes.indexOf(x);i<0?F.mistakes.push(x):F.mistakes.splice(i,1);p.classList.toggle('on')}else{F[k]=x;p.parentNode.querySelectorAll('.c').forEach(c=>c.classList.toggle('on',c==p))}calc();writeDraft();return}
 if(e.target.id=='fab'){form();return}if(e.target.id=='settingsBtn'){openSettings();return}if(e.target.id=='lg'){S.cfg.lang=TH()?'en':'th';save();R();return}if(e.target.id=='th'){S.cfg.theme=S.cfg.theme=='dark'?'light':'dark';save();R();return}
 const a=e.target.closest('[data-a]');if(!a)return;const x=a.dataset.v,A=a.dataset.a,cls=()=>document.querySelectorAll('.ov').forEach(o=>o.remove());
-if(A=='go'){v=x;try{localStorage.setItem(UI,JSON.stringify({v,rg,cm}))}catch(e){};R();if(v==='social')setTimeout(loadSocialView,0);scrollTo(0,0)}else if(A=='rg'){rg=x;R()}else if(A=='fl'){fl=x;R()}else if(A=='new')form();else if(A=='view')detail(x);else if(A=='day')dayView(x);else if(A=='close')a.closest('.ov').remove();else if(A=='sv')sv();else if(A=='more'){document.getElementById('ad').classList.add('on');a.remove()}
+if(A=='go'){if(a.tagName==='A')e.preventDefault();switchRcxTab(x)}else if(A=='rg'){rg=x;R()}else if(A=='fl'){fl=x;R()}else if(A=='new')form();else if(A=='view')detail(x);else if(A=='day')dayView(x);else if(A=='close')a.closest('.ov').remove();else if(A=='sv')sv();else if(A=='more'){document.getElementById('ad').classList.add('on');a.remove()}
 else if(A=='ed'){cls();form(S.trades.find(t=>t.id==x))}else if(A=='del'){if(confirm(T('sure'))){S.trades=S.trades.filter(t=>t.id!=x);save();cls();R()}}else if(A=='mv'){const[y,m]=cm.split('-').map(Number);cm=iso(new Date(y,m-1+ +x,1)).slice(0,7);R()}else if(A=='reset'){if(confirm('แทนที่ Trade ของ License นี้ด้วยข้อมูลตัวอย่าง?')){S.trades=seed();S.cfg.keepSampleData=true;delete S.cfg._needsDemoCleanSave;save();pushCloud();cls();R()}}else if(A=='clear'){if(confirm('ลบ Trade ทั้งหมดของ License นี้? ข้อมูลจะถูกลบจาก Cloud ด้วย')){S.trades=[];S.cfg.keepSampleData=false;delete S.cfg._needsDemoCleanSave;save();pushCloud();cls();R()}}else if(A=='open-settings'){openSettings()}else if(A=='logout'){logoutLicense()}else if(A=='dev'){openDev()}else if(A=='save-settings'){saveSettings()}});
 document.addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.matches('.c,.tab,.r,.cal>div'))e.target.click()});
 window.addEventListener('beforeunload',()=>{try{localStorage.setItem(UI,JSON.stringify({v,rg,cm}));if(S&&sessionToken)pushCloud()}catch(e){}});
@@ -497,6 +706,48 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-soc
 document.addEventListener('input',e=>{if(e.target.id==='chatAttachment')return});
 window.addEventListener('focus',()=>{if(v==='social')loadSocialView()});
 if(socialPollTimer)clearInterval(socialPollTimer);socialPollTimer=setInterval(()=>{if(v==='social'&&socialGroupId)loadChatMessages(socialGroupId)},7000);
+
+
+/* ================= RCX Journal interaction engine ================= */
+const RCXFX=(()=>{
+  let audio=null,hoverAt=0,mouse={x:innerWidth/2,y:innerHeight/2,active:false},raf=0,particles=[],canvas,ctx,halo,enabled=true,motion=true;
+  const prefersReduced=()=>window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const soundOn=()=>S?.cfg?.uiSounds!==false;
+  const motionOn=()=>S?.cfg?.motionEffects!==false&&!prefersReduced();
+  function ensureAudio(){
+    if(!soundOn())return null;
+    try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume();return audio}catch(e){return null}
+  }
+  function tone(freq,at,duration,wave,volume){if(!audio)return;try{const o=audio.createOscillator(),g=audio.createGain(),filter=audio.createBiquadFilter();o.type=wave||'sine';o.frequency.setValueAtTime(freq,at);filter.type='lowpass';filter.frequency.setValueAtTime(2400,at);g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(Math.max(.0002,volume||.018),at+.012);g.gain.exponentialRampToValueAtTime(.0001,at+duration);o.connect(filter);filter.connect(g);g.connect(audio.destination);o.start(at);o.stop(at+duration+.025)}catch(e){}}
+  function play(kind='click'){
+    if(!soundOn())return;const ac=ensureAudio();if(!ac)return;const now=ac.currentTime;
+    const recipes={hover:[[740,0,.035,'sine',.006]],click:[[520,0,.055,'triangle',.025]],nav:[[480,0,.065,'triangle',.018],[720,.055,.08,'sine',.016]],success:[[570,0,.09,'triangle',.024],[760,.07,.12,'sine',.018],[980,.14,.10,'sine',.012]],error:[[250,0,.11,'triangle',.024],[180,.09,.14,'sawtooth',.012]],send:[[660,0,.05,'sine',.018],[880,.05,.08,'triangle',.015]],toggle:[[420,0,.04,'sine',.014],[560,.035,.05,'sine',.012]]};
+    (recipes[kind]||recipes.click).forEach(n=>tone(n[0],now+n[1],n[2],n[3],n[4]));
+  }
+  function initParticles(){canvas=document.getElementById('rcxParticleCanvas');if(!canvas)return;ctx=canvas.getContext('2d',{alpha:true});if(!ctx)return;resize();particles=[];const n=Math.min(52,Math.max(24,Math.round(innerWidth/28)));for(let i=0;i<n;i++)particles.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*.24,vy:(Math.random()-.5)*.24,r:Math.random()*1.2+.35,p:Math.random()*Math.PI*2});if(!raf)raf=requestAnimationFrame(draw)}
+  function resize(){if(!canvas||!ctx)return;const dpr=Math.min(window.devicePixelRatio||1,1.5);canvas.width=Math.round(innerWidth*dpr);canvas.height=Math.round(innerHeight*dpr);canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';ctx.setTransform(dpr,0,0,dpr,0,0)}
+  function draw(){raf=0;if(!ctx||!canvas||!motionOn()||innerWidth<900||!matchMedia('(hover:hover)').matches)return;ctx.clearRect(0,0,innerWidth,innerHeight);const now=performance.now()*.001;
+    for(let i=0;i<particles.length;i++){const a=particles[i];a.x+=a.vx;a.y+=a.vy;a.p+=.009;if(a.x<-8)a.x=innerWidth+8;if(a.x>innerWidth+8)a.x=-8;if(a.y<-8)a.y=innerHeight+8;if(a.y>innerHeight+8)a.y=-8;
+      if(mouse.active){const dx=mouse.x-a.x,dy=mouse.y-a.y,dist=Math.hypot(dx,dy);if(dist<140&&dist>0){a.x-=dx/dist*(140-dist)*.0011;a.y-=dy/dist*(140-dist)*.0011}}
+      ctx.beginPath();ctx.arc(a.x,a.y,a.r+Math.sin(a.p)*.15,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.55)';ctx.fill();
+      for(let j=i+1;j<particles.length;j++){const b=particles[j],dx=a.x-b.x,dy=a.y-b.y,d=dx*dx+dy*dy;if(d<105*105){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(255,255,255,${(1-Math.sqrt(d)/105)*.12})`;ctx.lineWidth=.6;ctx.stroke()}}
+    }
+    if(mouse.active){const near=particles.filter(p=>Math.hypot(p.x-mouse.x,p.y-mouse.y)<170);near.forEach(p=>{ctx.beginPath();ctx.moveTo(mouse.x,mouse.y);ctx.lineTo(p.x,p.y);ctx.strokeStyle=`rgba(255,255,255,${Math.max(0,.15-Math.hypot(p.x-mouse.x,p.y-mouse.y)/1300)})`;ctx.stroke()})}
+    raf=requestAnimationFrame(draw)
+  }
+  function pointerMove(e){if(e.pointerType==='touch')return;mouse.x=e.clientX;mouse.y=e.clientY;mouse.active=true;document.documentElement.style.setProperty('--rcx-mx',mouse.x+'px');document.documentElement.style.setProperty('--rcx-my',mouse.y+'px');
+    if(halo&&innerWidth>=900&&motionOn()){halo.style.left=mouse.x+'px';halo.style.top=mouse.y+'px';halo.classList.add('is-visible');const hot=e.target?.closest?.('button,.c,.tab,.r,a,input,select,textarea,[data-social],[data-p],.dev-btn,.dev-tab,.currency-opt');halo.classList.toggle('is-hot',!!hot)}
+    const card=e.target?.closest?.('.t,.card,.social-card,.dashboard-history,.month-report,.dev-card');if(card&&innerWidth>=1100&&motionOn()){const r=card.getBoundingClientRect();card.style.setProperty('--card-x',((e.clientX-r.left)/r.width*100)+'%');card.style.setProperty('--card-y',((e.clientY-r.top)/r.height*100)+'%');const nx=(e.clientX-r.left)/r.width-.5,ny=(e.clientY-r.top)/r.height-.5;card.style.transform=`perspective(1100px) rotateX(${(-ny*1.35).toFixed(2)}deg) rotateY(${(nx*1.7).toFixed(2)}deg) translateY(-1px)`}else if(card&&card.style.transform){/* preserve any component-owned transform */}
+    if(!raf&&ctx&&innerWidth>=900)raf=requestAnimationFrame(draw)
+  }
+  function resetCard(e){const c=e.target?.closest?.('.t,.card,.social-card,.dashboard-history,.month-report,.dev-card');if(c&&innerWidth>=1100&&!c.contains(e.relatedTarget)){c.style.transform='';c.style.removeProperty('--card-x');c.style.removeProperty('--card-y')}}
+  function clickable(node){return node?.closest?.('button,.c,.tab,.r,a,[data-social],[data-p],.dev-btn,.dev-tab,.currency-opt,[data-a]')}
+  function init(){halo=document.getElementById('rcxCursorHalo');if(innerWidth>=900&&matchMedia('(hover:hover)').matches&&!prefersReduced())initParticles();window.addEventListener('resize',()=>{if(canvas){resize();if(!raf)raf=requestAnimationFrame(draw)}if(innerWidth<900&&halo)halo.classList.remove('is-visible')},{passive:true});window.addEventListener('pointermove',pointerMove,{passive:true});window.addEventListener('pointerout',resetCard,{passive:true});document.addEventListener('pointerover',e=>{if(!soundOn()||!audio||e.pointerType==='touch')return;const t=clickable(e.target);if(!t||t===clickable(e.relatedTarget))return;const n=performance.now();if(n-hoverAt>130){hoverAt=n;play('hover')}},{passive:true});document.addEventListener('click',e=>{const t=clickable(e.target);if(!t)return;let kind='click';if(t.matches('.tab')||t.dataset.v==='social'||t.dataset.a==='go')kind='nav';if(t.dataset.a==='save-settings'||t.dataset.a==='sv'||t.dataset.social==='send-message')kind=t.dataset.social==='send-message'?'send':'success';if(t.dataset.a==='clear'||t.dataset.a==='del'||t.dataset.social==='unfriend'||t.dataset.social==='delete-group')kind='error';if(t.id==='th'||t.id==='lg'||t.dataset.a==='rg'||t.dataset.setCurrency)kind='toggle';play(kind);},{capture:true});document.addEventListener('visibilitychange',()=>{if(document.hidden&&raf){cancelAnimationFrame(raf);raf=0}else if(!document.hidden&&ctx&&motionOn()&&innerWidth>=900&&!raf)raf=requestAnimationFrame(draw)});}
+  function refresh(){if(canvas&&ctx){if(motionOn()&&innerWidth>=900){if(!raf)raf=requestAnimationFrame(draw);canvas.style.display='block'}else canvas.style.display='none'}if(halo)halo.style.display=(motionOn()&&innerWidth>=900&&matchMedia('(hover:hover)').matches)?'block':'none'}
+  return{init,play,refresh};
+})();
+window.RCXFX=RCXFX;
+RCXFX.init();
 
 if(!monthlyMonth)monthlyMonth=iso(new Date()).slice(0,7);
 bootstrap().then(()=>startClock()).catch(()=>startClock());
